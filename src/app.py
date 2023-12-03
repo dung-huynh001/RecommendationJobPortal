@@ -71,6 +71,7 @@ def build_similarity_matrix(jobs):
     # Tạo ma trận mô tả kỹ năng cho mỗi công việc
     for i, job in enumerate(jobs):
         for skill in job['SkillsRequired']:
+            print(skill)
             skills_matrix[i, list(set(skill for job in jobs for skill in job['SkillsRequired'])).index(skill)] = 1
 
     # Tính toán ma trận tương đồng cosine
@@ -79,6 +80,7 @@ def build_similarity_matrix(jobs):
     return similarity_matrix
 
 similarity_matrix = build_similarity_matrix(job_listings)
+print(similarity_matrix)
 
 @app.route('/recommend', methods=['POST'])
 def recommend_jobs():
@@ -105,9 +107,11 @@ def get_recommendations(user_resume):
 
     # Tính toán tương đồng giữa user và jobs
     user_job_similarity = cosine_similarity(user_skills_vector, similarity_matrix)[0]
+    print(user_job_similarity)
 
     # Lấy danh sách công việc dựa trên tương đồng và sắp xếp giảm dần theo độ tương đồng
     ranked_jobs_indices = np.argsort(user_job_similarity)[::-1]
+    print(ranked_jobs_indices)
     recommended_jobs = [job_listings[i] for i in ranked_jobs_indices]
 
     return recommended_jobs
