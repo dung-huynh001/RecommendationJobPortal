@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 import pyodbc
+import pandas as pd
 
 app = Flask(__name__)
 
@@ -76,7 +77,7 @@ def vectorize_skills(job, skill_set):
 
 # Xây dựng ma trận vector skills cho các tin tuyển dụng 
 job_skill_matrix = np.zeros((len(job_listings), len(skill_set)))
-# print(job_skill_matrix)
+
 for i, job in enumerate(job_listings):
     v = vectorize_skills(job, skill_set)
     job_skill_matrix[i,:] = v
@@ -86,19 +87,23 @@ def recommend():
     user_resume = request.json.get('resume', {})
     user_skills = user_resume.get('skills', [])
     
+
     # Vector hóa skills cho ứng viên
     candidate_vector = vectorize_skills({"skills": user_skills}, skill_set)
+    print(candidate_vector)
     candidate_vector = np.array(candidate_vector)
+    print(candidate_vector)
 
     # Tính độ tương đồng vs mỗi job
     similarities = cosine_similarity(candidate_vector.reshape(1,-1), job_skill_matrix)[0]
+    print(similarities)
+
     
     # Sắp xếp top jobs
     top_jobs = sorted(list(zip(job_listings, similarities)), key=lambda x: x[1], reverse=True)
     recommended_jobs = [job[0] for job in top_jobs]
 
     return jsonify({'recommendations': recommended_jobs})
-    # return jsonify([job[0] for job in top_jobs])
 
 if __name__ == "__main__":
    app.run()
